@@ -15,7 +15,13 @@ To run this project you need to have following:
    ```bash
    $pip install selenium
    ```
-4. Run the project
+4. Install web driver
+
+```bash
+$pip install web-driver
+```
+
+5. Run the project
    ```bash
    $python main.py
    ```
@@ -100,9 +106,12 @@ To Create a seson in existing game, comment out these two lines and provide game
 
 ## Add episode in existing season
 
-To Create an episode in existing season, comment out these two lines and provide season id of the season where you want to add episode.
+To Create an episode in existing season, comment out these everything exept driver and authenticaion and provide season id of the season where you want to add episode.
 
 ```bash
+    # game = Game(driver=driver, name_of_game="Desired Game name")
+    # game_id = game.create_game()
+    # game_id = "9eba9420-f580-4f22-bd04-7e4ae2816102"
     # season = Season(driver=driver, game_id=game_id,
     #                 name_of_season="Season")
     # season_id = season.create_seasons()
