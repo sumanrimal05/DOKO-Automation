@@ -1,0 +1,8 @@
+__pycache__
+
+driver/
+
+.vscode
+
+pages/__pycache__
+utilities/__pycache__
