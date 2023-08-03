@@ -8,9 +8,10 @@ import os
 
 
 class Game:
-    def __init__(self, driver, name_of_game) -> None:
+    def __init__(self, driver, name_of_game, env) -> None:
         self.driver = driver
         self.name_of_game = name_of_game
+        self.env = env
 
     def generate_random_number(self):
         return random.randint(1, 1000)
@@ -35,7 +36,15 @@ class Game:
     def create_game(self):
         print('_______________________GAME_________________________')
         # Get site URL
-        self.driver.get('https://cms.doko-quiz.ekbana.net/game-management')
+        uat_URL = 'https://uat-cms.doko-quiz.ekbana.net/game-management'
+        dev_URL = 'https://cms.doko-quiz.ekbana.net/game-management'
+
+        if self.env == 0:
+            game_URL = dev_URL
+        else:
+            game_URL = uat_URL
+
+        self.driver.get(game_URL)
 
         # Click on Add New button
         add_new_button = self.driver.find_element(By.CLASS_NAME, "main-pg-btn")
@@ -81,7 +90,7 @@ class Game:
         season_url = manage_season_button.get_attribute("href")
         season_id = season_url.split("/")[-1]
         print("Season Id is", season_id)
-        self.driver.execute_script(
-            "arguments[0].click();", manage_season_button)
+        # self.driver.execute_script(
+        #     "arguments[0].click();", manage_season_button)
 
         return season_id

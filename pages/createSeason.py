@@ -22,10 +22,11 @@ class Season:
                      "50 Lucky winner will win RS 100  Recharge Cards",
                      "100 Lucky winner will win RS 50  Recharge Cards"]
 
-    def __init__(self, driver, game_id, name_of_season) -> None:
+    def __init__(self, driver, game_id, name_of_season, env) -> None:
         self.driver = driver
         self.game_id = game_id
         self.name_of_season = name_of_season
+        self.env = env
 
     def generate_random_number(self):
         return random.randint(1, 1000)
@@ -203,8 +204,15 @@ class Season:
             # Package is called here so every time you update episode_numbers, you also update packages
             time.sleep(0.5)
             # Get site URL
-            game_url = f'https://cms.doko-quiz.ekbana.net/season/{self.game_id}'
-            self.driver.get(game_url)
+            uat_URL = f'https://uat-cms.doko-quiz.ekbana.net/season/{self.game_id}'
+            dev_URL = f'https://cms.doko-quiz.ekbana.net/season/{self.game_id}'
+
+            if self.env == 0:
+                season_URL = dev_URL
+            else:
+                season_URL = uat_URL
+
+            self.driver.get(season_URL)
 
             # Check if there is episodes already on the seasons
             # And if there is add to it

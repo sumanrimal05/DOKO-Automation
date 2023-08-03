@@ -2,9 +2,17 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
 
 
-def authenticate(driver, username, password):
+def authenticate(driver, username, password, env):
+    uat_URL = "https://uat-cms.doko-quiz.ekbana.net/"
+    dev_URL = "https://cms.doko-quiz.ekbana.net/"
+
+    if env == 0:
+        auth_URL = dev_URL
+    else:
+        auth_URL = uat_URL
+
     # Get site URL
-    driver.get('https://cms.doko-quiz.ekbana.net/')
+    driver.get(auth_URL)
 
     try:
         # Locate username and password fields

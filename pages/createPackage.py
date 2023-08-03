@@ -16,9 +16,10 @@ class Package:
 
     payment_methods = ["Free Play", "Esewa"]
 
-    def __init__(self, driver, season_id, number_of_episodes) -> None:
+    def __init__(self, driver, season_id, number_of_episodes, env) -> None:
         self.driver = driver
         self.season_id = season_id
+        self.env = env
 
         if number_of_episodes < 5:
             self.number_of_episodes = 5
@@ -170,8 +171,16 @@ class Package:
 
         print('_______________________PACKAGE_________________________')
         # Get site URL"
+        uat_URL = f'https://uat-cms.doko-quiz.ekbana.net/package/{self.season_id}'
+        dev_URL = f'https://cms.doko-quiz.ekbana.net/package/{self.season_id}'
         package_url = f'https://cms.doko-quiz.ekbana.net/package/{self.season_id}'
-        self.driver.get(package_url)
+
+        if self.env == 0:
+            package_URL = dev_URL
+        else:
+            package_URL = uat_URL
+
+        self.driver.get(package_URL)
 
         self.calculate_package_number()
         self.update_season_package()

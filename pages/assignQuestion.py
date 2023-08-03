@@ -11,10 +11,11 @@ import time
 
 class AssignQuestion:
 
-    def __init__(self, driver, episode_id, number_of_question) -> None:
+    def __init__(self, driver, episode_id, number_of_question, env) -> None:
         self.driver = driver
         self.episode_id = episode_id
         self.number_of_question = number_of_question
+        self.env = env
 
         self.wait = WebDriverWait(driver, 10)
 
@@ -158,7 +159,15 @@ class AssignQuestion:
         if (self.number_of_question > 15):
             self.number_of_question = 15
         # Get site URL"
-        manage_question_url = f'https://cms.doko-quiz.ekbana.net/episode-question/set-question/{self.episode_id}'
+        dev_URL = f'https://cms.doko-quiz.ekbana.net/episode-question/set-question/{self.episode_id}'
+        uat_URL = f'https://uat-cms.doko-quiz.ekbana.net/episode-question/set-question/{self.episode_id}'
+        # manage_question_url = f'https://cms.doko-quiz.ekbana.net/episode-question/set-question/{self.episode_id}'
+
+        if self.env == 0:
+            manage_question_url = dev_URL
+        else:
+            manage_question_url = uat_URL
+
         self.driver.get(manage_question_url)
         prizes = [1000, 3000, 5000, 10000, 15000,
                   30000, 50000, 80000, 100000, 200000, 300000, 500000, 700000, 1000000, 5000000, 10000000]

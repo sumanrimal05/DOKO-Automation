@@ -15,13 +15,14 @@ import time
 
 
 class Episode:
-    def __init__(self, driver, season_id, name_of_episode, season_episode_type, game_host_name="", game_manager_name="") -> None:
+    def __init__(self, driver, season_id, name_of_episode, season_episode_type, env, game_host_name="", game_manager_name="") -> None:
         self.driver = driver
         self.season_id = season_id
         self.name_of_episode = name_of_episode
         self.season_episode_type = season_episode_type
         self.game_host_name = game_host_name
         self.game_manager_name = game_manager_name
+        self.env = env
 
     def get_air_datetime(self, number_of_episodes, episode_date):
         future_date = episode_date + \
@@ -120,6 +121,7 @@ class Episode:
         episode_live_URL = self.driver.find_element(By.NAME, "liveURL")
         winner_number = self.driver.find_element(By.NAME, "winnerNumber")
         episode_image = self.driver.find_element(By.NAME, "image")
+        winner_criteria = self.driver.find_element(By.NAME, "winnerCriteria")
 
         # Fill episode details
         episode_name.send_keys(self.name_of_episode +
@@ -158,6 +160,7 @@ class Episode:
         episode__detail_format = f"This is episode detail of {self.name_of_episode}. This is automatically generated season by selenium"
         time.sleep(1)
         episode_detail.send_keys(episode__detail_format)
+        winner_criteria.send_keys(5)
 
         # Upload episode image
         folder_path = 'assets/episode'
@@ -192,7 +195,7 @@ class Episode:
         except Exception as e:
             print("Already Published or Completed")
 
-    def create_episodes(self, number_of_episodes, episode_URL, number_of_question):
+    def create_episodes(self, number_of_episodes, episode_live_URL, number_of_question):
         if number_of_episodes < 1:
             raise ValueError(
                 "Episode number must be greater than or equal to 1")
@@ -201,8 +204,15 @@ class Episode:
             # Package is called here so every time you update episode_numbers, you also update packages
             time.sleep(0.5)
             # Get site URL"
-            season_url = f'https://cms.doko-quiz.ekbana.net/episode/{self.season_id}'
-            self.driver.get(season_url)
+            uat_URL = "https://uat-cms.doko-quiz.ekbana.net/episode/{self.season_id}"
+            dev_URL = f'https://cms.doko-quiz.ekbana.net/episode/{self.season_id}'
+
+            if self.env == 0:
+                episode_URL = dev_URL
+            else:
+                episode_URL = uat_URL
+
+            self.driver.get(episode_URL)
 
             # Check if there is episodes already on the seasons
             # And if there is add to it
@@ -234,11 +244,11 @@ class Episode:
                 episode_air_date, episode_air_time = self.get_air_datetime(
                     number_of_episodes=episode_number, episode_date=episode_time)
                 episode_id, new_episode_number = self.create_single_episode(
-                    episode_number, episode_URL, episode_air_date, episode_air_time)
+                    episode_number, episode_live_URL, episode_air_date, episode_air_time)
                 calc_episode_number = new_episode_number
                 time.sleep(0.5)
                 question = AssignQuestion(driver=self.driver,
-                                          episode_id=episode_id, number_of_question=number_of_question)
+                                          episode_id=episode_id, number_of_question=number_of_question, env=self.env)
                 question.assign_questions()
                 time.sleep(0.5)
                 self.publish_episode(episode_number)
