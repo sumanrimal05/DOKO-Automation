@@ -8,6 +8,8 @@ from pages.createPackage import Package
 
 def main():
     driver = browser()
+
+    # Env = 0 for dev and 1 for uat
     env = 0
     # env = 1
 
