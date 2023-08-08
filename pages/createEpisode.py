@@ -204,7 +204,7 @@ class Episode:
             # Package is called here so every time you update episode_numbers, you also update packages
             time.sleep(0.5)
             # Get site URL"
-            uat_URL = "https://uat-cms.doko-quiz.ekbana.net/episode/{self.season_id}"
+            uat_URL = f"https://uat-cms.doko-quiz.ekbana.net/episode/{self.season_id}"
             dev_URL = f'https://cms.doko-quiz.ekbana.net/episode/{self.season_id}'
 
             if self.env == 0:
