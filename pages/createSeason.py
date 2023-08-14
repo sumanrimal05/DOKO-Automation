@@ -6,75 +6,72 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.select import Select
 
-from pages.createGame import Game
+from utilities.imageUploader import upload_images
+from constants import constants
 
 
 class Season:
-    season_ids = []
-    payment_providers = ["Free Play", "Esewa"]
-    lifelines = ["50/50", "Audience Poll", "Skip Question"]
-    total_number_of_season_winner = 5
-    total_number_of_episode = 7
-    sponsor_title = "Test Season"
-    season_prizes = ["1 Lucky winner will win Samsung Galaxy S23",
-                     "5 Lucky winner will win Samsung Galaxy A30s",
-                     "10 Lucky winner will win Samsung Gift Hampers",
-                     "50 Lucky winner will win RS 100  Recharge Cards",
-                     "100 Lucky winner will win RS 50  Recharge Cards"]
-
-    def __init__(self, driver, game_id, name_of_season, env) -> None:
+    def __init__(self, driver, game_id, name_of_season, number_of_ads, BASE_URL) -> None:
         self.driver = driver
         self.game_id = game_id
         self.name_of_season = name_of_season
-        self.env = env
+        self.number_of_ads = number_of_ads
+        self.BASE_URL = BASE_URL
 
     def generate_random_number(self):
         return random.randint(1, 1000)
 
-    def select_random_ads(self, selector_element, num_ads=3):
-        select = Select(selector_element)
-        all_options = select.options
+    def select_random_ads(self, selector_element):
+        try:
+            select = Select(selector_element)
+            all_options = select.options
 
-        # Filter out disabled options
-        non_disabled_options = [
-            option for option in all_options if not option.is_enabled()]
+            # Filter out disabled options
+            non_disabled_options = [
+                option for option in all_options if not option.is_enabled()]
 
-        # Get the selected options
-        selected_options = [
-            option for option in all_options if option.is_selected()]
+            # Get the selected options
+            selected_options = [
+                option for option in all_options if option.is_selected()]
 
-        # If the number of selected options is greater than or equal to the required number of ads,
-        # deselect the extra selected options randomly to have exactly 'num_ads' selected ads
-        while len(selected_options) >= num_ads:
-            option_to_deselect = random.choice(selected_options)
-            select.deselect_by_visible_text(option_to_deselect.text)
-            selected_options.remove(option_to_deselect)
+            # If the number of selected options is greater than or equal to the required number of ads,
+            # deselect the extra selected options randomly to have exactly 'num_ads' selected ads
+            while len(selected_options) >= self.number_of_ads:
+                option_to_deselect = random.choice(selected_options)
+                select.deselect_by_visible_text(option_to_deselect.text)
+                selected_options.remove(option_to_deselect)
 
-        # Get the remaining options (options that are not selected and not disabled)
-        remaining_options = [
-            option for option in all_options if option not in selected_options and option not in non_disabled_options]
+            # Get the remaining options (options that are not selected and not disabled)
+            remaining_options = [
+                option for option in all_options if option not in selected_options and option not in non_disabled_options]
 
-        # Randomly select additional ads to reach the required number of 'num_ads'
-        ads_to_select = min(num_ads - len(selected_options),
-                            len(remaining_options))
-        options_to_select = random.sample(remaining_options, ads_to_select)
+            # Randomly select additional ads to reach the required number of 'num_ads'
+            ads_to_select = min(self.number_of_ads - len(selected_options),
+                                len(remaining_options))
+            options_to_select = random.sample(remaining_options, ads_to_select)
 
-        for option in options_to_select:
-            select.select_by_visible_text(option.text)
+            for option in options_to_select:
+                select.select_by_visible_text(option.text)
+
+        except Exception as e:
+            print(f"Error whhile selecting ad, Error: {e} ")
 
     def fill_season_prizes(self):
-        season_price_button = self.driver.find_element(By.ID, "season-prize")
-        for index, item in enumerate(self.season_prizes):
-            prize_xpath = f"//div[@id ='seasonPrizesContainer']/input[{index + 1}]"
+        try:
+            season_price_button = self.driver.find_element(
+                By.ID, "season-prize")
+            for index, item in enumerate(constants.season_prizes):
+                prize_xpath = f"//div[@id ='seasonPrizesContainer']/input[{index + 1}]"
 
-            # Get season element
-            season_prizes = self.driver.find_element(By.XPATH, prize_xpath)
+                # Fill Season prize
+                season_prizes = self.driver.find_element(By.XPATH, prize_xpath)
+                season_prizes.clear()
+                season_prizes.send_keys(item)
+                self.driver.execute_script(
+                    "arguments[0].click();", season_price_button)
 
-            # Fill season element
-            season_prizes.clear()
-            season_prizes.send_keys(item)
-            self.driver.execute_script(
-                "arguments[0].click();", season_price_button)
+        except Exception as e:
+            print("Failed to set season prizes, Error: {e}")
 
     def publish_season(self, season_number):
         try:
@@ -97,72 +94,83 @@ class Season:
         add_new_button = self.driver.find_element(By.CLASS_NAME, "main-pg-btn")
         add_new_button.click()
 
-        # Get elements
+        # Fill Season Name
         season_name = self.driver.find_element(By.ID, "name")
-        season_code = self.driver.find_element(By.ID, "slug")
-        season_position = self.driver.find_element(
-            By.CLASS_NAME, "number-position")
-        season_detail = self.driver.find_element(By.NAME, "detail")
-        season_lifeline = self.driver.find_element(By.NAME, "lifeline")
-        payment_provider = self.driver.find_element(By.NAME, "paymentProvider")
-        season_winners = self.driver.find_element(By.NAME, "winnerNumber")
-        episode_winners = self.driver.find_element(
-            By.NAME, "episodeForSeasonWin")
-        sponsor_title = self.driver.find_element(By.NAME, "sponsorTitle")
-        season_ad = self.driver.find_element(By.NAME, "seasonAdvertisement")
-        powered_by_logos = self.driver.find_element(By.NAME, "poweredByLogo")
-        season_banner_image = self.driver.find_element(By.NAME, "bannerImage")
-        sponsor_logo = self.driver.find_element(By.NAME, "sponsorLogo")
-        season_banner_ad = self.driver.find_element(By.NAME, "bannerAd")
-
-        # Fill season details
         season_name.send_keys(self.name_of_season + " " + str(season_number))
+
+        # Fill Season Code
+        season_code = self.driver.find_element(By.ID, "slug")
         random_number = str(self.generate_random_number())
         season_code_format = "sel" + random_number
         season_code.send_keys(season_code_format)
+
+        # Fill Season position
+        season_position = self.driver.find_element(
+            By.CLASS_NAME, "number-position")
         season_position.send_keys(random_number)
+
+        # Fill Season Detail
+        season_detail = self.driver.find_element(By.NAME, "detail")
         season_detail_format = f"This is season detail of {self.name_of_season}. This is automatically generated season by selenium"
         season_detail.send_keys(season_detail_format)
-        season_winners.clear()
-        season_winners.send_keys(self.total_number_of_season_winner)
-        episode_winners.clear()
-        episode_winners.send_keys(self.total_number_of_episode)
-        sponsor_title.clear()
-        sponsor_title.send_keys(self.sponsor_title)
 
-        # Selecting season lifelines
+        # Select Season lifeline
+        season_lifeline = self.driver.find_element(By.NAME, "lifeline")
         select = Select(season_lifeline)
-        select.select_by_visible_text(self.lifelines[0])
-        select.select_by_visible_text(self.lifelines[1])
-        select.select_by_visible_text(self.lifelines[2])
+        select.select_by_visible_text(constants.lifelines[0])
+        select.select_by_visible_text(constants.lifelines[1])
+        select.select_by_visible_text(constants.lifelines[2])
 
-        # Upload powered by images
-        folder_path = 'assets/season'
-        image_names = ['season_baner_image.jpg']
-        Game.upload_images(folder_path, image_names, season_banner_image)
-
-        # Selecting season lifelines1
+        # Select Payment Provider
+        payment_provider = self.driver.find_element(By.NAME, "paymentProvider")
         select = Select(payment_provider)
-        select.select_by_visible_text(self.payment_providers[0])
-        select.select_by_visible_text(self.payment_providers[1])
+        select.select_by_visible_text(constants.payment_providers[0])
+        select.select_by_visible_text(constants.payment_providers[1])
 
+        # Set Season Winners
+        season_winners = self.driver.find_element(By.NAME, "winnerNumber")
+        season_winners.clear()
+        season_winners.send_keys(constants.total_number_of_season_winner)
+
+        # Set Episode Winners
+        episode_winners = self.driver.find_element(
+            By.NAME, "episodeForSeasonWin")
+        episode_winners.clear()
+        episode_winners.send_keys(constants.total_number_of_episode)
+
+        # Set Sponsor Title
+        sponsor_title = self.driver.find_element(By.NAME, "sponsorTitle")
+        sponsor_title.clear()
+        sponsor_title.send_keys(constants.sponsor_title)
+
+        # Set Season Ad
+        season_ad = self.driver.find_element(By.NAME, "seasonAdvertisement")
         # Select random season ad
-        self.select_random_ads(selector_element=season_ad, num_ads=3)
+        self.select_random_ads(selector_element=season_ad)
 
-        # Upload powered by images
-        folder_path = 'assets/season'
-        image_names = ['sponsor_logo.png']
-        Game.upload_images(folder_path, image_names, sponsor_logo)
-
-        # Upload powered by images
-        folder_path = 'assets/season'
-        image_names = ['season_banner_ad.jpg']
-        Game.upload_images(folder_path, image_names, season_banner_ad)
-
-        # Upload powered by images
+        # Upload Powered by images
+        powered_by_logos = self.driver.find_element(By.NAME, "poweredByLogo")
         folder_path = 'assets/season'
         image_names = ['poweredBy_1.jpg', 'poweredBy_2.jpg']
-        Game.upload_images(folder_path, image_names, powered_by_logos)
+        upload_images(folder_path, image_names, powered_by_logos)
+
+        # Upload season banner images
+        season_banner_image = self.driver.find_element(By.NAME, "bannerImage")
+        folder_path = 'assets/season'
+        image_names = ['season_baner_image.jpg']
+        upload_images(folder_path, image_names, season_banner_image)
+
+        # Upload sponsor logo
+        sponsor_logo = self.driver.find_element(By.NAME, "sponsorLogo")
+        folder_path = 'assets/season'
+        image_names = ['sponsor_logo.png']
+        upload_images(folder_path, image_names, sponsor_logo)
+
+        # Upload season banner ad images
+        season_banner_ad = self.driver.find_element(By.NAME, "bannerAd")
+        folder_path = 'assets/season'
+        image_names = ['season_banner_ad.jpg']
+        upload_images(folder_path, image_names, season_banner_ad)
 
         # Fill season prizes
         self.fill_season_prizes()
@@ -177,7 +185,6 @@ class Season:
         season_url = manage_season_button.get_attribute("href")
         season_id = season_url.split("/")[-1]
         print("Season Id is", season_id)
-        # manage_episode_button.click()
 
         return season_id
 
@@ -204,31 +211,20 @@ class Season:
             # Package is called here so every time you update episode_numbers, you also update packages
             time.sleep(0.5)
             # Get site URL
-            uat_URL = f'https://uat-cms.doko-quiz.ekbana.net/season/{self.game_id}'
-            dev_URL = f'https://cms.doko-quiz.ekbana.net/season/{self.game_id}'
-
-            if self.env == 0:
-                season_URL = dev_URL
-            else:
-                season_URL = uat_URL
-
-            self.driver.get(season_URL)
+            SEASON_URL = self.BASE_URL + f'season/{self.game_id}'
+            self.driver.get(SEASON_URL)
 
             # Check if there is episodes already on the seasons
             # And if there is add to it
-            total_seasons = self.check_if_season_present()
-            print("Total season is", total_seasons)
+            existing_season_number = self.check_if_season_present()
+            print("Total season is", existing_season_number)
 
-            episode_time = 0
-            if total_seasons == 0:
-                season_start = 1
-
+            if existing_season_number == 0:
+                season_number = 1
             else:
-                season_start = total_seasons + 1
+                season_number = existing_season_number + 1
 
-            # season_end = season_start + number_of_seasons
-
-            season_id = self.create_single_season(season_number=season_start)
+            season_id = self.create_single_season(season_number)
 
             return season_id
 

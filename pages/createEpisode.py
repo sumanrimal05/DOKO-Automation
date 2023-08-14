@@ -11,25 +11,32 @@ from utilities.handleAlert import handle_alert
 from pages.createGame import Game
 from pages.assignQuestion import AssignQuestion
 from pages.createPackage import Package
+from utilities.imageUploader import upload_images
 import time
 
 
 class Episode:
-    def __init__(self, driver, season_id, name_of_episode, season_episode_type, env, game_host_name="", game_manager_name="") -> None:
+    episode_datetime = datetime.now()
+
+    def __init__(self, driver, season_id, name_of_episode, season_episode_type, BASE_URL,  number_of_episodes, game_host_name="", game_manager_name="") -> None:
         self.driver = driver
         self.season_id = season_id
         self.name_of_episode = name_of_episode
         self.season_episode_type = season_episode_type
         self.game_host_name = game_host_name
         self.game_manager_name = game_manager_name
-        self.env = env
+        self.BASE_URL = BASE_URL
+        self.name_of_episodes = number_of_episodes
 
-    def get_air_datetime(self, number_of_episodes, episode_date):
+    def get_start_air_datetime(self, number_of_episodes, episode_date):
         future_date = episode_date + \
             timedelta(days=number_of_episodes - 1, hours=5)
         formatted_date = future_date.strftime("%m/%d/%Y")
         formatted_time = future_date.strftime("%I:%M %p")
         return formatted_date, formatted_time
+
+    def get_last_datetime(self):
+        pass
 
     def compare_episode_date(self, last_episode_date):
         episode_date = datetime.strptime(last_episode_date, "%Y-%m-%d")
@@ -153,6 +160,16 @@ class Episode:
             self.select_option_by_partial_text_or_random(
                 dropdown_element=game_manager, option_text=self.game_manager_name)
 
+        if episode_type_text == "custom-auto":
+            # Set End Date time
+            end_date = self.driver.find_element(By.ID, "end-date")
+
+            end_time = self.driver.find_element(By.NAME, "endTime")
+            # Choose game manager
+            game_manager = self.driver.find_element(By.ID, "game-manager")
+            self.select_option_by_partial_text_or_random(
+                dropdown_element=game_manager, option_text=self.game_manager_name)
+
         # episode_live_URL.clear()
         episode_live_URL.send_keys(episode_URL)
         winner_number.clear()
@@ -165,7 +182,7 @@ class Episode:
         # Upload episode image
         folder_path = 'assets/episode'
         image_names = ['episode_image.jpg']
-        Game.upload_images(folder_path, image_names, episode_image)
+        upload_images(folder_path, image_names, episode_image)
 
         # Save episode
         element = self.driver.find_element(By.CLASS_NAME, "submit")
@@ -204,15 +221,8 @@ class Episode:
             # Package is called here so every time you update episode_numbers, you also update packages
             time.sleep(0.5)
             # Get site URL"
-            uat_URL = f"https://uat-cms.doko-quiz.ekbana.net/episode/{self.season_id}"
-            dev_URL = f'https://cms.doko-quiz.ekbana.net/episode/{self.season_id}'
-
-            if self.env == 0:
-                episode_URL = dev_URL
-            else:
-                episode_URL = uat_URL
-
-            self.driver.get(episode_URL)
+            EPISODE_URL = self.BASE_URL + f"episode/{self.season_id}"
+            self.driver.get(EPISODE_URL)
 
             # Check if there is episodes already on the seasons
             # And if there is add to it
@@ -241,14 +251,14 @@ class Episode:
             calc_episode_number = 0
             print('_______________________MultiEPISODE_________________________')
             for episode_number in range(episode_start, episode_end):
-                episode_air_date, episode_air_time = self.get_air_datetime(
+                episode_air_date, episode_air_time = self.get_start_air_datetime(
                     number_of_episodes=episode_number, episode_date=episode_time)
                 episode_id, new_episode_number = self.create_single_episode(
                     episode_number, episode_live_URL, episode_air_date, episode_air_time)
                 calc_episode_number = new_episode_number
                 time.sleep(0.5)
                 question = AssignQuestion(driver=self.driver,
-                                          episode_id=episode_id, number_of_question=number_of_question, env=self.env)
+                                          episode_id=episode_id, number_of_question=number_of_question, BASE_URL=self.BASE_URL)
                 question.assign_questions()
                 time.sleep(0.5)
                 self.publish_episode(episode_number)

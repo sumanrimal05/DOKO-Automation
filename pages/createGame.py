@@ -4,47 +4,30 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 import random
-import os
+
+from utilities.imageUploader import upload_images
 
 
 class Game:
-    def __init__(self, driver, name_of_game, env) -> None:
+    def __init__(self, driver, name_of_game, BASE_URL) -> None:
         self.driver = driver
         self.name_of_game = name_of_game
-        self.env = env
+        self.BASE_URL = BASE_URL
 
     def generate_random_number(self):
         return random.randint(1, 1000)
 
-    @staticmethod
-    def upload_images(folder_path, image_names, element):
-
-        # Example of fiel_path and images_name
-        # folder_path = 'assets/season'
-        # image_names = ['image1.jpg', 'image2.jpg', 'image3.jpg']
-
-        # folder_path = 'assets/season'
-
-        # Create full file paths for each image in the list
-        image_paths = [os.path.abspath(os.path.join(
-            folder_path, image_name)) for image_name in image_names]
-
-        # Send each file path to the file input element one by one
-        for image_path in image_paths:
-            element.send_keys(image_path)
-
     def create_game(self):
         print('_______________________GAME_________________________')
-        # Get site URL
-        uat_URL = 'https://uat-cms.doko-quiz.ekbana.net/game-management'
-        dev_URL = 'https://cms.doko-quiz.ekbana.net/game-management'
 
-        if self.env == 0:
-            game_URL = dev_URL
-        else:
-            game_URL = uat_URL
+        try:
+            # Get site URL
+            GAME_URL = self.BASE_URL + 'game-management'
 
-        self.driver.get(game_URL)
+            self.driver.get(GAME_URL)
+
+        except Exception as e:
+            print(f"Cannot visit game url, {e}")
 
         random_number = str(self.generate_random_number())
 
@@ -79,7 +62,7 @@ class Game:
         game_banner_image = self.driver.find_element(By.NAME, "bannerImage")
         folder_path = 'assets/game'
         image_names = ['game_image.jpg']
-        Game.upload_images(folder_path, image_names, game_banner_image)
+        upload_images(folder_path, image_names, game_banner_image)
 
         # Save Game
         save_button = self.driver.find_element(By.CLASS_NAME, "submit")
