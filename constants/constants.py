@@ -23,14 +23,12 @@ season_prizes = ["1 Lucky winner will win Samsung Galaxy S23",
 episode_name = "Episode"
 participants_limit = 0
 
-episode_type = 'manual'
+# episode_type = 'manual'
+# episode_type = 'auto'
+episode_type = 'custom-auto'
+
 game_manager_name = "Suman Manager"
 game_host_name = "Suman Host"
-
-# episode_type = 'auto'
-
-# episode_type = 'custom-auto'
-
 episode_live_url = "https://www.youtube.com/watch?v=40SNdIiu9Cw"
 total_number_of_episode_winner = 5
 winner_criteria_episode = 2

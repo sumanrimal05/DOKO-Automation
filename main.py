@@ -21,7 +21,7 @@ def main():
     game = Game(driver=driver, BASE_URL=BASE_URL)
     game_id = game.create_game()
 
-    # game_id = "ccba109d-c6a9-4531-8b53-f5a35c43d426"
+    # game_id = "060620ad-3f47-48f9-818f-64bd464abd13"
     season = Season(driver=driver, game_id=game_id,  BASE_URL=BASE_URL)
     season_id = season.create_seasons()
 
