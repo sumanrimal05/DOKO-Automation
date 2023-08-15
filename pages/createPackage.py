@@ -171,7 +171,7 @@ class Package:
 
         print('_______________________PACKAGE_________________________')
         # Get site URL"
-        PACKAGE_URL = self.BASE_URL + f'/package/{self.season_id}'
+        PACKAGE_URL = self.BASE_URL + f'package/{self.season_id}'
 
         self.driver.get(PACKAGE_URL)
 

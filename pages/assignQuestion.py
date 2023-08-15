@@ -11,9 +11,9 @@ import time
 
 class AssignQuestion:
 
-    def __init__(self, driver, episode_id, number_of_question, BASE_URL) -> None:
+    def __init__(self, driver, episode_ids, number_of_question, BASE_URL) -> None:
         self.driver = driver
-        self.episode_id = episode_id
+        self.episode_ids = episode_ids
         self.number_of_question = number_of_question
         self.BASE_URL = BASE_URL
 
@@ -153,47 +153,51 @@ class AssignQuestion:
 
     def assign_questions(self):
         print('_______________________ASSIGN QUESTION_________________________')
-        # Validation check if user inputs more number of question than 15
-        if (self.number_of_question < 2):
-            self.number_of_question = 2
-        if (self.number_of_question > 15):
-            self.number_of_question = 15
-        # Get site URL"
-        ASSIGN_QUESTION_URL = self.BASE_URL + \
-            f'episode-question/set-question/{self.episode_id}'
-        self.driver.get(ASSIGN_QUESTION_URL)
+        for episode_id in self.episode_ids:
 
-        prizes = [1000, 3000, 5000, 10000, 15000,
-                  30000, 50000, 80000, 100000, 200000, 300000, 500000, 700000, 1000000, 5000000, 10000000]
-        for question in range(1, self.number_of_question+1):
-            # Select Question type for question 1
-            print(f"Question is {question}")
-            self.question_type(question_number=question)
-            time.sleep(0.1)
-            self.question_category(question_number=question)
-            time.sleep(0.1)
-            self.question_difficulty(question_number=question)
-            time.sleep(0.5)
-            self.question_select(question_number=question)
-            # time.sleep(1)
-            self.question_timer(question_number=question, duration=20)
-            self.question_prize(question_number=question,
-                                prize=prizes[question])
-            time.sleep(0.1)
+            # Validation check if user inputs more number of question than 15
+            if (self.number_of_question < 2):
+                self.number_of_question = 2
+            if (self.number_of_question > 15):
+                self.number_of_question = 15
 
-        # Save
-        submit_button_xpath = "//button[text()='Save']"
-        submit_button_element = self.driver.find_element(
-            By.XPATH, submit_button_xpath)
-        self.driver.execute_script(
-            "arguments[0].click();", submit_button_element)
-        # submit_button_element.click()
+            print("Episode id is:", episode_id)
+            # Get site URL"
+            ASSIGN_QUESTION_URL = self.BASE_URL + \
+                f'episode-question/set-question/{episode_id}'
+            self.driver.get(ASSIGN_QUESTION_URL)
 
-        # confirm
-        confirm_button_xpath = "//button[text()='Confirm']"
-        confirm_button_element = self.driver.find_element(
-            By.XPATH, confirm_button_xpath)
-        self.driver.execute_script(
-            "arguments[0].click();", confirm_button_element)
+            prizes = [1000, 3000, 5000, 10000, 15000,
+                      30000, 50000, 80000, 100000, 200000, 300000, 500000, 700000, 1000000, 5000000, 10000000]
+            for question in range(1, self.number_of_question+1):
+                # Select Question type for question 1
+                print(f"Question is {question}")
+                self.question_type(question_number=question)
+                time.sleep(0.1)
+                self.question_category(question_number=question)
+                time.sleep(0.1)
+                self.question_difficulty(question_number=question)
+                time.sleep(0.5)
+                self.question_select(question_number=question)
+                # time.sleep(1)
+                self.question_timer(question_number=question, duration=20)
+                self.question_prize(question_number=question,
+                                    prize=prizes[question])
+                time.sleep(0.1)
+
+            # Save
+            submit_button_xpath = "//button[text()='Save']"
+            submit_button_element = self.driver.find_element(
+                By.XPATH, submit_button_xpath)
+            self.driver.execute_script(
+                "arguments[0].click();", submit_button_element)
+            # submit_button_element.click()
+
+            # confirm
+            confirm_button_xpath = "//button[text()='Confirm']"
+            confirm_button_element = self.driver.find_element(
+                By.XPATH, confirm_button_xpath)
+            self.driver.execute_script(
+                "arguments[0].click();", confirm_button_element)
 
         return 1
