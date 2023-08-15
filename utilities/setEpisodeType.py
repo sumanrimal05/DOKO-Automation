@@ -18,17 +18,17 @@ def set_episode_type(driver, season_episode_type):
     if (season_episode_type == 'auto'):
         option = driver.find_element(
             By.XPATH, auto_episode_Xpath)
-        text_value = option.text.lower()
+        text_value = 'auto'
         # return option, text_value
 
     elif (season_episode_type == 'manual'):
         option = driver.find_element(
             By.XPATH, manual_episode_Xpath)
-        text_value = option.text.lower()
+        text_value = 'manual'
 
     elif (season_episode_type == 'custom-auto'):
         option = driver.find_element(
             By.XPATH, custom_auto_episode_Xpath)
-        text_value = option.text.lower()
+        text_value = 'custom-auto'
 
     return option, text_value

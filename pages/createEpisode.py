@@ -14,29 +14,26 @@ from pages.createPackage import Package
 from utilities.imageUploader import upload_images
 import time
 
+from constants import constants
+
 
 class Episode:
     episode_ids = []
     episode_numbers = []
 
-    def __init__(self, driver, season_id, name_of_episode, season_episode_type, BASE_URL, game_host_name="", game_manager_name="") -> None:
+    def __init__(self, driver, season_id, BASE_URL) -> None:
         self.driver = driver
         self.season_id = season_id
-        self.name_of_episode = name_of_episode
-        self.season_episode_type = season_episode_type
-        self.game_host_name = game_host_name
-        self.game_manager_name = game_manager_name
         self.BASE_URL = BASE_URL
 
     def get_start_air_datetime(self, number_of_episodes, episode_date):
-        future_date = episode_date + \
+        air_datetime = episode_date + \
             timedelta(days=number_of_episodes - 1, hours=5)
-        formatted_date = future_date.strftime("%m/%d/%Y")
-        formatted_time = future_date.strftime("%I:%M %p")
-        return formatted_date, formatted_time
+        return air_datetime
 
-    def get_last_datetime(self):
-        pass
+    def get_end_datetime(self, air_datetime):
+        end_datetime = air_datetime + timedelta(days=1)
+        return end_datetime
 
     def compare_current_last_episode_datetime(self, last_episode_date):
         episode_date = datetime.strptime(last_episode_date, "%Y-%m-%d")
@@ -56,7 +53,7 @@ class Episode:
         tbody = self.driver.find_element(By.TAG_NAME, 'tbody')
 
         try:
-            # Check the first element of the table
+            # Check the first save_button_element of the table
             self.driver.find_element(
                 By.XPATH, "//table//tbody/tr//td[text() = 'No Records found.']")
 
@@ -72,11 +69,11 @@ class Episode:
     def get_last_episode_airdate(self):
         episode_number = self.check_if_episode_present()
         if episode_number > 0:
-            # last episode element
+            # last episode save_button_element
             last_episode_xpath = f"//tbody//tr[{episode_number}]//td[4]"
-            last_episode = self.driver.find_element(
+            last_episode_element = self.driver.find_element(
                 By.XPATH, last_episode_xpath)
-            last_air_date = last_episode.text
+            last_air_date = last_episode_element.text
             return last_air_date
         else:
             return datetime.now()
@@ -101,101 +98,115 @@ class Episode:
             random_index = random.randint(1, len(select.options) - 1)
             select.select_by_index(random_index)
 
-    def create_single_episode(self, episode_number, episode_URL, episode_air_datetime):
+    def create_single_episode(self, episode_number, episode_air_datetime):
         print('_______________________SINGLE Episode_________________________')
 
         # Click on Add New button
-        add_new_button = self.driver.find_element(By.CLASS_NAME, "main-pg-btn")
+        add_new_button_element = self.driver.find_element(
+            By.CLASS_NAME, "main-pg-btn")
         self.driver.execute_script(
-            "arguments[0].click();", add_new_button)
-        # add_new_button.click()
+            "arguments[0].click();", add_new_button_element)
+        # add_new_button_element.click()
 
         # Set Episode Name
-        episode_name = self.driver.find_element(By.ID, "name")
-        episode_name.send_keys(self.name_of_episode +
-                               " " + str(episode_number))
+        episode_name_element = self.driver.find_element(By.ID, "name")
+        episode_name_element.send_keys(constants.episode_name +
+                                       " " + str(episode_number))
         # Set Episode Code
-        episode_code = self.driver.find_element(By.ID, "slug")
+        episode_code_element = self.driver.find_element(By.ID, "slug")
         random_number = str(self.generate_random_number())
         episode_code_format = "sel" + random_number
-        episode_code.send_keys(episode_code_format)
+        episode_code_element.send_keys(episode_code_format)
 
         # Set Episode Air Date time
-        air_date = self.driver.find_element(By.ID, "start-date")
-        air_time = self.driver.find_element(By.NAME, "airTime")
-        episode_air_date, episode_air_time = self.get_start_air_datetime(
+        air_date_element = self.driver.find_element(By.ID, "start-date")
+        air_time_element = self.driver.find_element(By.NAME, "airTime")
+        air_datetime = self.get_start_air_datetime(
             number_of_episodes=episode_number, episode_date=episode_air_datetime)
+        episode_air_date = air_datetime.strftime("%m/%d/%Y")
+        episode_air_time = air_datetime.strftime("%I:%M %p")
         self.driver.execute_script(
-            "arguments[0].value = arguments[1]", air_date, episode_air_date)
+            "arguments[0].value = arguments[1]", air_date_element, episode_air_date)
         self.driver.execute_script(
-            "arguments[0].value = arguments[1]", air_time, episode_air_time)
+            "arguments[0].value = arguments[1]", air_time_element, episode_air_time)
 
         # Set Participant limit
-        participant_limit = self.driver.find_element(
+        participant_limit_element = self.driver.find_element(
             By.NAME, "participantsLimit")
-        participant_limit.send_keys(0)
+        participant_limit_element.send_keys(constants.participants_limit)
 
         # Set Episode type
         episode_type_option, episode_type_text = set_episode_type(
-            self.driver, self.season_episode_type)
+            self.driver, constants.episode_type)
         ActionChains(self.driver).move_to_element(
             episode_type_option).click().perform()
-
+        print("Episode type is", episode_type_text)
         if episode_type_text == "manual":
             # Choose game host
-            game_host = self.driver.find_element(By.ID, "game-host")
+            game_host_element = self.driver.find_element(By.ID, "game-host")
             self.select_option_by_partial_text_or_random(
-                dropdown_element=game_host, option_text=self.game_host_name)
+                dropdown_element=game_host_element, option_text=constants.game_host_name)
 
             # Choose game manager
-            game_manager = self.driver.find_element(By.ID, "game-manager")
+            game_manager_element = self.driver.find_element(
+                By.ID, "game-manager")
             self.select_option_by_partial_text_or_random(
-                dropdown_element=game_manager, option_text=self.game_manager_name)
+                dropdown_element=game_manager_element, option_text=constants.game_manager_name)
 
         if episode_type_text == "custom-auto":
             # Set End Date time
-            end_date = self.driver.find_element(By.ID, "end-date")
+            print("I am here")
+            end_date_element = self.driver.find_element(By.ID, "end-date")
 
-            end_time = self.driver.find_element(By.NAME, "endTime")
-            # Choose game manager
-            game_manager = self.driver.find_element(By.ID, "game-manager")
-            self.select_option_by_partial_text_or_random(
-                dropdown_element=game_manager, option_text=self.game_manager_name)
+            end_time_element = self.driver.find_element(By.NAME, "endTime")
+            end_datetime = self.get_end_datetime(air_datetime)
+            episode_end_date = end_datetime.strftime("%m/%d/%Y")
+            episode_end_time = end_datetime.strftime("%I:%M %p")
+            print("End date is:", episode_end_date)
+            print("End Time is:", episode_end_time)
+            self.driver.execute_script(
+                "arguments[0].value = arguments[1]", end_date_element, episode_end_date)
+            self.driver.execute_script(
+                "arguments[0].value = arguments[1]", end_time_element, episode_end_time)
 
         # Set Episode Live URL
-        episode_live_URL = self.driver.find_element(By.NAME, "liveURL")
-        # episode_live_URL.clear()
-        episode_live_URL.send_keys(episode_URL)
+        episode_live_URL_element = self.driver.find_element(By.NAME, "liveURL")
+        # episode_live_URL_element.clear()
+        episode_live_URL_element.send_keys(constants.episode_live_url)
 
         # Set total number of winner
-        winner_number = self.driver.find_element(By.NAME, "winnerNumber")
-        winner_number.clear()
-        winner_number.send_keys(5)
+        total_number_of_winner_element = self.driver.find_element(
+            By.NAME, "winnerNumber")
+        total_number_of_winner_element.clear()
+        total_number_of_winner_element.send_keys(
+            constants.total_number_of_episode_winner)
 
         # Upload episode image
-        episode_image = self.driver.find_element(By.NAME, "image")
+        episode_image_element = self.driver.find_element(By.NAME, "image")
         folder_path = 'assets/episode'
         image_names = ['episode_image.jpg']
-        upload_images(folder_path, image_names, episode_image)
+        upload_images(folder_path, image_names, episode_image_element)
 
         # Set Episode Detail
-        episode__detail_format = f"This is episode detail of {self.name_of_episode}. This is automatically generated season by selenium"
-        episode_detail = self.driver.find_element(
+        episode__detail_format = f"This is episode detail of {constants.episode_name}. This is automatically generated season by selenium"
+        episode_detail_element = self.driver.find_element(
             By.XPATH, "//textarea[@name ='description']")
-        episode_detail.send_keys(episode__detail_format)
+        episode_detail_element.send_keys(episode__detail_format)
 
         # Set Winner Criteria
-        winner_criteria = self.driver.find_element(By.NAME, "winnerCriteria")
-        winner_criteria.send_keys(5)
+        winner_criteria_element = self.driver.find_element(
+            By.NAME, "winnerCriteria")
+        winner_criteria_element.send_keys(constants.winner_criteria_episode)
 
         # Save episode
-        element = self.driver.find_element(By.CLASS_NAME, "submit")
-        self.driver.execute_script("arguments[0].click();", element)
+        save_button_element = self.driver.find_element(By.CLASS_NAME, "submit")
+        self.driver.execute_script(
+            "arguments[0].click();", save_button_element)
 
         manage_question_xpath = f"//table/tbody//tr[{episode_number}]//a[text()=' Manage Question']"
-        manage_question_button = self.driver.find_element(
+        manage_question_button_element = self.driver.find_element(
             By.XPATH, manage_question_xpath)
-        episode_url = manage_question_button.get_attribute("href")
+        episode_url = manage_question_button_element.get_attribute("href")
         episode_id = episode_url.split("/")[-1]
         print("Episode Id is", episode_id)
         # manage_episode_button.click()
@@ -210,19 +221,19 @@ class Episode:
         for episode_number in episode_numbers:
             try:
                 status_xpath = f"//table/tbody//tr[{episode_number}]//select[@name = 'status']"
-                select_status = self.driver.find_element(
+                select_status_element = self.driver.find_element(
                     By.XPATH, status_xpath)
-                select = Select(select_status)
+                select = Select(select_status_element)
                 select.select_by_value('published')
 
                 time.sleep(0.5)
-                confirm_button = self.driver.find_element(
+                confirm_button_element = self.driver.find_element(
                     By.XPATH, "//button[text()='Confirm']")
-                confirm_button.click()
+                confirm_button_element.click()
             except Exception as e:
                 print("Already Published or Completed")
 
-    def create_episodes(self, number_of_episodes, episode_live_URL):
+    def create_episodes(self, number_of_episodes):
         if number_of_episodes < 1:
             raise ValueError(
                 "Episode number must be greater than or equal to 1")
@@ -260,7 +271,7 @@ class Episode:
             print('_______________________MultiEPISODE_________________________')
             for episode_number in range(episode_start_number, episode_end_number):
                 self.create_single_episode(
-                    episode_number, episode_live_URL, episode_air_datetime)
+                    episode_number, episode_air_datetime)
                 time.sleep(0.5)
                 self.episode_numbers.append(episode_number)
             return self.episode_ids, self.episode_numbers

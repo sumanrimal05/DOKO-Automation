@@ -163,6 +163,7 @@ class AssignQuestion:
 
             print("Episode id is:", episode_id)
             # Get site URL"
+            time.sleep(0.2)
             ASSIGN_QUESTION_URL = self.BASE_URL + \
                 f'episode-question/set-question/{episode_id}'
             self.driver.get(ASSIGN_QUESTION_URL)

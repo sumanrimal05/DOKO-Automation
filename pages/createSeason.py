@@ -11,11 +11,9 @@ from constants import constants
 
 
 class Season:
-    def __init__(self, driver, game_id, name_of_season, number_of_ads, BASE_URL) -> None:
+    def __init__(self, driver, game_id, BASE_URL) -> None:
         self.driver = driver
         self.game_id = game_id
-        self.name_of_season = name_of_season
-        self.number_of_ads = number_of_ads
         self.BASE_URL = BASE_URL
 
     def generate_random_number(self):
@@ -36,7 +34,7 @@ class Season:
 
             # If the number of selected options is greater than or equal to the required number of ads,
             # deselect the extra selected options randomly to have exactly 'num_ads' selected ads
-            while len(selected_options) >= self.number_of_ads:
+            while len(selected_options) >= constants.number_of_ads:
                 option_to_deselect = random.choice(selected_options)
                 select.deselect_by_visible_text(option_to_deselect.text)
                 selected_options.remove(option_to_deselect)
@@ -46,7 +44,7 @@ class Season:
                 option for option in all_options if option not in selected_options and option not in non_disabled_options]
 
             # Randomly select additional ads to reach the required number of 'num_ads'
-            ads_to_select = min(self.number_of_ads - len(selected_options),
+            ads_to_select = min(constants.number_of_ads - len(selected_options),
                                 len(remaining_options))
             options_to_select = random.sample(remaining_options, ads_to_select)
 
@@ -96,7 +94,7 @@ class Season:
 
         # Fill Season Name
         season_name = self.driver.find_element(By.ID, "name")
-        season_name.send_keys(self.name_of_season + " " + str(season_number))
+        season_name.send_keys(constants.season_name + " " + str(season_number))
 
         # Fill Season Code
         season_code = self.driver.find_element(By.ID, "slug")
@@ -111,32 +109,33 @@ class Season:
 
         # Fill Season Detail
         season_detail = self.driver.find_element(By.NAME, "detail")
-        season_detail_format = f"This is season detail of {self.name_of_season}. This is automatically generated season by selenium"
+        season_detail_format = f"This is season detail of {constants.season_name}. This is automatically generated season by selenium"
         season_detail.send_keys(season_detail_format)
 
         # Select Season lifeline
         season_lifeline = self.driver.find_element(By.NAME, "lifeline")
         select = Select(season_lifeline)
-        select.select_by_visible_text(constants.lifelines[0])
-        select.select_by_visible_text(constants.lifelines[1])
-        select.select_by_visible_text(constants.lifelines[2])
+        for index, lifeline in enumerate(constants.lifelines):
+            select.select_by_visible_text(constants.lifelines[index])
 
         # Select Payment Provider
         payment_provider = self.driver.find_element(By.NAME, "paymentProvider")
         select = Select(payment_provider)
-        select.select_by_visible_text(constants.payment_providers[0])
-        select.select_by_visible_text(constants.payment_providers[1])
+        for index, payment in enumerate(constants.payment_providers):
+            select.select_by_visible_text(constants.payment_providers[index])
 
         # Set Season Winners
-        season_winners = self.driver.find_element(By.NAME, "winnerNumber")
-        season_winners.clear()
-        season_winners.send_keys(constants.total_number_of_season_winner)
+        total_number_of_season_winner = self.driver.find_element(
+            By.NAME, "winnerNumber")
+        total_number_of_season_winner.clear()
+        total_number_of_season_winner.send_keys(
+            constants.total_number_of_season_winner)
 
-        # Set Episode Winners
-        episode_winners = self.driver.find_element(
+        # Total number of episode
+        total_number_of_episode = self.driver.find_element(
             By.NAME, "episodeForSeasonWin")
-        episode_winners.clear()
-        episode_winners.send_keys(constants.total_number_of_episode)
+        total_number_of_episode.clear()
+        total_number_of_episode.send_keys(constants.total_number_of_episode)
 
         # Set Sponsor Title
         sponsor_title = self.driver.find_element(By.NAME, "sponsorTitle")

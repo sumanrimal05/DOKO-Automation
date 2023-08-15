@@ -6,12 +6,12 @@ from selenium.webdriver.support import expected_conditions as EC
 import random
 
 from utilities.imageUploader import upload_images
+from constants import constants
 
 
 class Game:
-    def __init__(self, driver, name_of_game, BASE_URL) -> None:
+    def __init__(self, driver, BASE_URL) -> None:
         self.driver = driver
-        self.name_of_game = name_of_game
         self.BASE_URL = BASE_URL
 
     def generate_random_number(self):
@@ -38,7 +38,7 @@ class Game:
         # Game Name
         game_name = self.driver.find_element(By.ID, "name")
         game_name.clear()
-        game_name.send_keys(self.name_of_game)
+        game_name.send_keys(constants.game_name)
 
         # Game Code
         game_code = self.driver.find_element(By.ID, "slug")
@@ -55,7 +55,7 @@ class Game:
         # Game Detail
         game_detail = self.driver.find_element(By.NAME, "detail")
         game_detail.clear()
-        game_detail_format = f"This is game detail of {self.name_of_game}. This is automatically generated game for selenium"
+        game_detail_format = f"This is game detail of {constants.game_name}. This is automatically generated game for selenium"
         game_detail.send_keys(game_detail_format)
 
         # Game Banner Image
