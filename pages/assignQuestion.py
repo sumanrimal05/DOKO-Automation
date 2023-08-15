@@ -87,7 +87,6 @@ class AssignQuestion:
         question_difficulty_xpath = f"{BASE_URL}//div[contains(@class,'multiselect__content-wrapper')]//li[@id='null-0']/span/span"
         dropdown_click_xpath = f"{BASE_URL}//div[contains(@class,'multiselect__select')]"
 
-        # wait = WebDriverWait(self.driver, 10)
         self.handle_dropdown(dropdown_click_xpath)
 
         question_difficulty_value = self.driver.find_element(
@@ -100,8 +99,6 @@ class AssignQuestion:
     def question_select(self, question_number):
         BASE_URL = f"//div[contains(@class,'theme-form mega-form')]/div[h4/text()=' Question {question_number}']/following-sibling::div[contains(@class,'mb-3')]//div[contains(@class,'multiselect question-{question_number}')]"
         question_select_xpath = f"{BASE_URL}//div[contains(@class,'multiselect__content-wrapper')]//li"
-
-        # wait = WebDriverWait(self.driver, 10)
 
         # CLick the drop down
         dropdown_click_xpath = f"{BASE_URL}//div[contains(@class,'multiselect__select')]"
@@ -133,10 +130,8 @@ class AssignQuestion:
 
         self.driver.execute_script(
             "arguments[0].click();", question_select_value)
-        # question_select_value.click()
 
     def question_timer(self, question_number, duration):
-        # wait = WebDriverWait(self.driver, 10)
         question_timer_xpath = f"//div[contains(@class,'theme-form mega-form')]/div[h4/text()=' Question {question_number}']/following-sibling::div[contains(@class,'mb-3')]//input[contains(@class, 'question-timer-{question_number}')]"
         question_timer_element = self.driver.find_element(
             By.XPATH, question_timer_xpath)
@@ -144,7 +139,6 @@ class AssignQuestion:
         question_timer_element.send_keys(duration)
 
     def question_prize(self, question_number, prize):
-        # wait = WebDriverWait(self.driver, 10)
         question_prize_xpath = f"//div[contains(@class,'theme-form mega-form')]/div[h4/text()=' Question {question_number}']/following-sibling::div[contains(@class,'mb-3')]//input[contains(@class, 'question-prize-{question_number}')]"
         question_prize_element = self.driver.find_element(
             By.XPATH, question_prize_xpath)
@@ -192,8 +186,6 @@ class AssignQuestion:
                 By.XPATH, submit_button_xpath)
             self.driver.execute_script(
                 "arguments[0].click();", submit_button_element)
-            # submit_button_element.click()
-
             # confirm
             confirm_button_xpath = "//button[text()='Confirm']"
             confirm_button_element = self.driver.find_element(
